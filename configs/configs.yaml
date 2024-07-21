@@ -1,6 +1,9 @@
 news:
   urls:
     - https://tuoitre.vn/
+    - https://www.tinnhanhchungkhoan.vn/
+    - https://vnexpress.net/
+    - https://www.scmp.com/
 
-number_of_news: 2
-use_images: True
+number_of_news: 5
+use_images: False
