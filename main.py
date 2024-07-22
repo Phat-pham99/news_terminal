@@ -23,7 +23,7 @@ table.add_column(header='News',
 console = Console()
 text_column = TextColumn("{task.description}", table_column=Column(ratio=1))
 bar_column = BarColumn(bar_width=None, table_column=Column(ratio=2))
-progress = Progress(text_column, bar_column, expand=True)
+progress = Progress(text_column, bar_column, transient=True, expand=True)
 
 configs = read_yaml("configs/configs.yaml")
 url_list = yaml_dot(configs,"news.urls")
@@ -31,19 +31,26 @@ with progress:
     task_ = progress.add_task("[red]Getting news...[/red]",total=len(url_list)*yaml_dot(configs,"number_of_news"))
     for url in url_list:
         news_paper = newspaper.build(url,memoize_articles=False)
-        for article in news_paper.articles[0:yaml_dot(configs,"number_of_news")]:
-            article.download()
-            article.parse()
+        for article in news_paper.articles[0:yaml_dot(configs,"number_of_news")]: #! Add Skipped list of Urls
+            try:
+                progress.update(task_,description=f"[green]Getting {url}[/green]",advance=0)
+                article.download()
+                article.parse()
+            except newspaper.article.ArticleException as e:
+                progress.update(task_,description=f"[red]Retry {url}[/red]",advance=0)
+                article.download()
+                article.parse()
+                progress.update(task_,description=f"[green]Getting {url}[/green]",advance=0)
             if yaml_dot(configs,"use_images"):
-                image = url_to_imagebit(article.top_image)
                 try:
-                    added_text = f"[magneta]{article.publish_date}[/magneta] \n [green]{article.title}[/green] \n [blue]{article.url}[/blue] \n {imagebit_to_string(image,150)} \n"
+                    image = url_to_imagebit(article.top_image)
+                    added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n {imagebit_to_string(image,100)} \n \n"
                     progress.update(task_,description=f"{url} \n {article.title}",advance=1)
                 except:
-                    added_text = f"[magneta]{article.publish_date}[/magneta] \n [green]{article.title}[/green] \n [blue]{article.url}[/blue] \n "
+                    added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n \n "
                     progress.update(task_,description=f"{url} \n {article.title}",advance=1)
             else: 
-                added_text = f"[magneta]{article.publish_date}[/magneta] \n [green]{article.title}[/green] \n [blue]{article.url}[/blue] \n "
+                added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n \n "
                 progress.update(task_,description=f"{url} \n {article.title}",advance=1)
             table.add_row(added_text + article.text)
-    console.print(table)
+console.print(table)
