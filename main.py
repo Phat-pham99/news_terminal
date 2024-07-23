@@ -24,7 +24,7 @@ url_list = yaml_dot(configs,"news.urls")
 with progress:
     task_ = progress.add_task("[red]Getting news...[/red]",total=len(url_list)*yaml_dot(configs,"number_of_news"))
     for url in url_list:
-        news_paper = newspaper.build(url,memoize_articles=False)
+        news_paper = newspaper.build(url,memoize_articles=yaml_dot(configs,"memoize_articles"))
         for article in news_paper.articles[0:yaml_dot(configs,"number_of_news")]: #! Add Skipped list of Urls
             try:
                 article.download()
