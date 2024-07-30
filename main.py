@@ -4,6 +4,7 @@ from rich import pretty, box
 from rich.table import Table, Column
 from rich.console import Console
 from rich.progress import Progress, BarColumn, TextColumn
+import re
 
 pretty.install()
 console = Console()
@@ -21,29 +22,42 @@ progress = Progress(text_column, bar_column, transient=True, expand=True, auto_r
 
 configs = read_yaml("configs/configs.yaml")
 url_list = yaml_dot(configs,"news.urls")
-with progress:
-    task_ = progress.add_task("[red]Getting news...[/red]",total=len(url_list)*yaml_dot(configs,"number_of_news"))
-    for url in url_list:
-        news_paper = newspaper.build(url,memoize_articles=yaml_dot(configs,"memoize_articles"))
-        for article in news_paper.articles[0:yaml_dot(configs,"number_of_news")]: #! Add Skipped list of Urls
-            try:
-                article.download()
-                article.parse()
-            except Exception as e:
-                continue
-            if yaml_dot(configs,"use_images"):
+
+if __name__ == "__main__":
+    with progress:
+        task_ = progress.add_task("[red]Getting news...[/red]",total=len(url_list)*yaml_dot(configs,"number_of_news"))
+        for url in url_list:
+            news_paper = newspaper.build(url,memoize_articles=yaml_dot(configs,"memoize_articles"))
+            # url_list = []
+            block_list = yaml_dot(configs,"news.block_list")
+            for article in news_paper.articles:
+                for block_item in block_list:
+                    if re.search(block_item,article.url) :
+                        try:
+                            news_paper.articles.remove(article)
+                        except ValueError:
+                            pass
+                    else:
+                        continue
+            for article in news_paper.articles[0:yaml_dot(configs,"number_of_news")]:
                 try:
-                    image = url_to_imagebit(article.top_image)
-                    added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n{imagebit_to_string(image,100)} \n \n"
-                    progress.update(task_,description=f"[blue]{url}[/blue] \n {article.title} \n\n{imagebit_to_string(image,70)}", advance=1)
-                    progress.refresh()
-                except:
+                    article.download()
+                    article.parse()
+                except Exception as e:
+                    continue
+                if yaml_dot(configs,"use_images"):
+                    try:
+                        image = url_to_imagebit(article.top_image)
+                        added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n{imagebit_to_string(image,100)} \n \n"
+                        progress.update(task_,description=f"[blue]{url}[/blue] \n {article.title} \n\n{imagebit_to_string(image,70)}", advance=1)
+                        progress.refresh()
+                    except:
+                        added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n \n "
+                        progress.update(task_,description=f"[blue]{url}[/blue] \n {article.title}", advance=1)
+                        progress.refresh()
+                else: 
                     added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n \n "
                     progress.update(task_,description=f"[blue]{url}[/blue] \n {article.title}", advance=1)
                     progress.refresh()
-            else: 
-                added_text = f"{article.publish_date} \n [green bold]{article.title}[/green bold] \n [blue]{article.url}[/blue] \n \n "
-                progress.update(task_,description=f"[blue]{url}[/blue] \n {article.title}", advance=1)
-                progress.refresh()
-            table.add_row(added_text + article.text)
-console.print(table)
+                table.add_row(added_text + article.text)
+    console.print(table)

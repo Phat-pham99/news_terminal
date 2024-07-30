@@ -1,9 +1,16 @@
 news:
   urls:
-    # - https://tuoitre.vn/
-    - https://www.tinnhanhchungkhoan.vn/
     - https://vnexpress.net/
-    - https://nguoiquansat.vn/
-number_of_news: 15
+    - https://www.tinnhanhchungkhoan.vn/
+    - https://vietstock.vn/
+    - https://thanhnien.vn/
+    - https://thehackernews.com/
+    - https://cointelegraph.com/news/
+    - https://www.infoworld.com/article
+    - https://www.coindesk.com/    
+  block_list : 
+    - "#"
+    - comment
+number_of_news: 10
 use_images: True
-memoize_articles: True
+memoize_articles: False
