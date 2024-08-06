@@ -1,16 +1,18 @@
 news:
   urls:
-    - https://vnexpress.net/
-    - https://www.tinnhanhchungkhoan.vn/
-    - https://vietstock.vn/
-    - https://thanhnien.vn/
-    - https://thehackernews.com/
-    - https://cointelegraph.com/news/
-    - https://www.infoworld.com/article
-    - https://www.coindesk.com/    
+    # - https://vnexpress.net/
+    # - https://www.tinnhanhchungkhoan.vn/
+     - https://vietstock.vn/
+    # - https://thanhnien.vn/
+    #- https://thehackernews.com/
+    #- https://cointelegraph.com/news/
+    #- https://www.infoworld.com/article
+    #- https://www.coindesk.com/
+    # - https://www.secureworld.io/industry-news/topic/dark-web    
+    #- https://theinvestor.vn
   block_list : 
     - "#"
-    - comment
-number_of_news: 10
-use_images: True
+    - "comment"
+number_of_news: 6
+use_images: False
 memoize_articles: False
