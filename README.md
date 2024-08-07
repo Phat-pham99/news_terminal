@@ -1,6 +1,6 @@
 # Simple news aggregator in Python
 
-Sample `config.yml` file
+Sample `configs/configs.yml` file
 ```
 news:
   urls:
@@ -18,5 +18,27 @@ Parameters:
 - `number_of_news`: Number of news per url
 - `memoirize_articles`: Set to `True` if you want the news not to get duplicated each script run.  
 
+On the other hand, you can also pass in CLI argument to overwrite initial config : 
+```
+(news_venv) news_terminal> python .\main.py -h
+usage: main.py [-h] [--url URL] [--block_list BLOCK_LIST] [--numb_news NUMB_NEWS] [--image] [--memoize MEMOIZE]
 
-![GIF](./asset/screen_recording.gif)
+Simple news aggregator right in your terminal !
+
+options:
+  -h, --help            show this help message and exit
+  --url URL, -u URL     additional news url
+  --block_list BLOCK_LIST, -b BLOCK_LIST
+                        list of keywords to exclude
+  --numb_news NUMB_NEWS, -n NUMB_NEWS
+                        number of news per url
+  --image, -im          Set this flag to show image
+  --memoize MEMOIZE, -me MEMOIZE
+                        Set to False for unduplicated 
+  ```
+
+## Usage:
+```
+python main.py --image -u "https://theinvestor.vn"
+```
+<img src="./asset/screen_recording.gif"/>

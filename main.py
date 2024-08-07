@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument("--image","-im",action='store_true', help="Set this flag to show image")
     parser.add_argument("--memoize","-me", help="Set to False for unduplicated news")
     args = parser.parse_args()
-    number_of_news = args.numb_news if args.numb_news \
+    number_of_news = int(args.numb_news) if args.numb_news \
         else yaml_dot(configs,"number_of_news")
     memoize_articles =  args.memoize if args.memoize \
         else yaml_dot(configs,"memoize_articles")
@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 if use_images:
                     try:
                         image = url_to_imagebit(article.top_image)
-                        added_text = f"""
+                        added_text = f"""{article.publish_date}\n
                         [green bold]{article.title}\n[/green bold]\n{imagebit_to_string(image,100)}\n
                         [blue]{article.url}[/blue] \n\n"""
                         progress.update(task_,description=f"""[blue]{url}[/blue]\n{article.title}\n\n{imagebit_to_string(image,70)}""",advance=1)
