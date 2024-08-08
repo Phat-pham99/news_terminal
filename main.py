@@ -7,25 +7,43 @@ from rich.progress import Progress, BarColumn, TextColumn
 import re
 import argparse
 
+__author__ = "Phat Hong Pham"
+__copyright__= "Copyright 2024"
+__version__ = "1.0.1"
+__email__="hphat99@gmail.com"
+
 pretty.install()
 console = Console()
 
 table = Table(
-box=box.DOUBLE,
-show_lines=True
+    box=box.DOUBLE,
+    show_lines=True
 )
-table.add_column(header='News',
-                justify="justified", style="white")
-console = Console()
-text_column = TextColumn("{task.description}", table_column=Column(ratio=1))
-bar_column = BarColumn(bar_width=None, table_column=Column(ratio=2))
-progress = Progress(text_column, bar_column, transient=True, expand=True, auto_refresh=False)
+table.add_column(
+    header='News',
+    justify="justified", 
+    style="white")
+text_column = TextColumn(
+    "{task.description}",
+    table_column=Column(ratio=1))
+bar_column = BarColumn(
+    bar_width=None,
+    table_column=Column(ratio=2))
+progress = Progress(
+    text_column,
+    bar_column,
+    transient=True,
+    expand=True, 
+    auto_refresh=False)
 
 configs = read_yaml("configs/configs.yaml")
 url_list = yaml_dot(configs,"news.urls")
 
 description = """
 Simple news aggregator right in your terminal !
+Github: https://github.com/Phat-pham99/news_terminal
+Auhor: Phat Hong Pham
+Email: hphat99@gmail.com
 """
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description)
