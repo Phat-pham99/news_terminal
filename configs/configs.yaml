@@ -1,9 +1,15 @@
 news:
   urls:
-    - https://www.newsbtc.com/
+    - https://vietstock.vn/
+    - https://tuoitre.vn/
+    - https://vnexpress.net/
+    - https://theinvestor.vn/
+    - https://dantri.com.vn/
+    - https://www.tinnhanhchungkhoan.vn
   block_list : 
     - "#"
     - "comment"
+    - "newsbtc.com/news/"
 number_of_news: 10
 use_images: False
 memoize_articles: False
