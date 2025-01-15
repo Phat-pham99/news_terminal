@@ -1,11 +1,14 @@
+import re
+import argparse
+import os
+import psutil
+
 from utils.utils import read_yaml,yaml_dot,url_to_imagebit,imagebit_to_string
 import newspaper
 from rich import pretty, box
 from rich.table import Table, Column
 from rich.console import Console
 from rich.progress import Progress, BarColumn, TextColumn
-import re
-import argparse
 
 __author__ = "Phat Hong Pham"
 __copyright__= "Copyright 2024"
@@ -44,12 +47,19 @@ Github: https://github.com/Phat-pham99/news_terminal
 Auhor: Phat Hong Pham
 Email: hphat99@gmail.com
 """
+def mem_info():
+    process = psutil.Process(os.getpid())
+    mem_info = process.memory_info()
+    return mem_info.rss
+
 def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
     url_list = yaml_dot(configs,"news.urls")
     if url:
         url_list.append(url)
+    mem_before = mem_info()
     with progress:
-        task_ = progress.add_task("[red]Getting news...[/red]",
+        collective_mem = 0
+        task_ = progress.add_task(f"""[red]Getting news...[/red]\n""",
                         total=len(url_list)*numb_news)
         for url in url_list:
             news_paper = newspaper.build(url,
@@ -77,25 +87,30 @@ def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
                 if use_images:
                     try:
                         image = url_to_imagebit(article.top_image)
+                        mem_after = mem_info()
                         added_text = f"""{article.publish_date}\n
                         [green bold]{article.title}\n[/green bold]\n{imagebit_to_string(image,100)}\n
                         [blue]{article.url}[/blue] \n\n"""
-                        progress.update(task_,description=f"""[blue]{url}[/blue]\n{article.title}\n\n{imagebit_to_string(image,70)}""",advance=1)
+                        progress.update(task_,description=f"""[blue]{url}[/blue]\n{article.title}\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n{imagebit_to_string(image,70)}""",advance=1)
                         progress.refresh()
                     except:
-                        added_text = f"""{article.publish_date}\n
-                        [green bold]{article.title}[/green bold]\n 
-                        [blue]{article.url}[/blue]\n\n"""
+                        mem_after = mem_info()
+                        added_text = f"""{article.publish_date}\n[green bold]{article.title}[/green bold]\n\
+                        [blue]{article.url}[/blue]\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n
+                        """
                         progress.update(task_,description=f"""[blue]{url}[/blue]\n {article.title}""", advance=1)
                         progress.refresh()
                 else:
-                    added_text = f"""{article.publish_date}\n 
+                    added_text = f"""{article.publish_date}\n
                     [green bold]{article.title}[/green bold]\n
                     [blue]{article.url}[/blue]\n\n """
-                    progress.update(task_,description=f"""[blue]{url}[/blue]\n
-                                {article.title}""", advance=1)
+                    mem_after = mem_info()
+                    progress.update(task_,description=f"""[blue]{url}[/blue]\n {article.title}\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n
+                                """, advance=1)
                     progress.refresh()
                 table.add_row(added_text + article.text)
+                collective_mem += mem_after
+    print(f"\nCollective memory usage: {round((collective_mem - mem_before)/(1024 * 1024),3)} MB")
     return table
 
 if __name__ == "__main__":
