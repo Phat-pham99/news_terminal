@@ -37,7 +37,6 @@ progress = Progress(
     auto_refresh=False)
 
 configs = read_yaml("configs/configs.yaml")
-url_list = yaml_dot(configs,"news.urls")
 
 description = """
 Simple news aggregator right in your terminal !
@@ -45,29 +44,19 @@ Github: https://github.com/Phat-pham99/news_terminal
 Auhor: Phat Hong Pham
 Email: hphat99@gmail.com
 """
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("--url", "-u", help="additional news url")
-    parser.add_argument("--block_list","-b", help="list of keywords to exclude")
-    parser.add_argument("--numb_news","-n", help="number of news per url")
-    parser.add_argument("--image","-im",action='store_true', help="Set this flag to show image")
-    parser.add_argument("--memoize","-me", help="Set to False for unduplicated news")
-    args = parser.parse_args()
-    number_of_news = int(args.numb_news) if args.numb_news \
-        else yaml_dot(configs,"number_of_news")
-    memoize_articles =  args.memoize if args.memoize \
-        else yaml_dot(configs,"memoize_articles")
-    if args.url:
-        url_list.append(args.url)
+def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
+    url_list = yaml_dot(configs,"news.urls")
+    if url:
+        url_list.append(url)
     with progress:
         task_ = progress.add_task("[red]Getting news...[/red]",
-                        total=len(url_list)*number_of_news)
+                        total=len(url_list)*numb_news)
         for url in url_list:
             news_paper = newspaper.build(url,
-                        memoize_articles=memoize_articles)
+                        memoize_articles=is_memoize)
             block_list = yaml_dot(configs,"news.block_list")
-            if args.block_list:
-                block_list.append(args.block_list)
+            if input_block_list:
+                block_list.append(input_block_list)
             for article in news_paper.articles:
                 for block_item in block_list:
                     if re.search(block_item,article.url) :
@@ -77,13 +66,13 @@ if __name__ == "__main__":
                             pass
                     else:
                         continue
-            for article in news_paper.articles[0:number_of_news]:
+            for article in news_paper.articles[0:numb_news]:
                 try:
                     article.download()
                     article.parse()
                 except Exception as e:
                     continue
-                use_images = args.image if args.image \
+                use_images = has_image if has_image \
                     else yaml_dot(configs,"use_images")
                 if use_images:
                     try:
@@ -107,4 +96,25 @@ if __name__ == "__main__":
                                 {article.title}""", advance=1)
                     progress.refresh()
                 table.add_row(added_text + article.text)
-    console.print(table)
+    return table
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("--url", "-u", help="additional news url")
+    parser.add_argument("--block_list","-b", help="list of keywords to exclude")
+    parser.add_argument("--numb_news","-n", help="number of news per url")
+    parser.add_argument("--image","-im",action='store_true', help="Set this flag to show image")
+    parser.add_argument("--memoize","-me", help="Set to False for unduplicated news")
+    args = parser.parse_args()
+    number_of_news = int(args.numb_news) if args.numb_news \
+        else yaml_dot(configs,"number_of_news")
+    memoize_articles =  args.memoize if args.memoize \
+        else yaml_dot(configs,"memoize_articles")
+    console.print(
+        news_terminal(
+            configs,args.url,
+            args.block_list,
+            number_of_news,
+            args.image,
+            memoize_articles)
+        )
