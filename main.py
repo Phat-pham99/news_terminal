@@ -58,7 +58,6 @@ def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
         url_list.append(url)
     mem_before = mem_info()
     with progress:
-        collective_mem = 0
         task_ = progress.add_task(f"""[red]Getting news...[/red]\n""",
                         total=len(url_list)*numb_news)
         for url in url_list:
@@ -79,8 +78,10 @@ def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
             for article in news_paper.articles[0:numb_news]:
                 try:
                     article.download()
+                    mem_after = mem_info()
                     article.parse()
-                except Exception as e:
+                except Exception:
+                    mem_after = mem_info()
                     continue
                 use_images = has_image if has_image \
                     else yaml_dot(configs,"use_images")
@@ -94,7 +95,6 @@ def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
                         progress.update(task_,description=f"""[blue]{url}[/blue]\n{article.title}\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n{imagebit_to_string(image,70)}""",advance=1)
                         progress.refresh()
                     except:
-                        mem_after = mem_info()
                         added_text = f"""{article.publish_date}\n[green bold]{article.title}[/green bold]\n\
                         [blue]{article.url}[/blue]\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n
                         """
@@ -104,13 +104,10 @@ def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
                     added_text = f"""{article.publish_date}\n
                     [green bold]{article.title}[/green bold]\n
                     [blue]{article.url}[/blue]\n\n """
-                    mem_after = mem_info()
                     progress.update(task_,description=f"""[blue]{url}[/blue]\n {article.title}\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n
                                 """, advance=1)
                     progress.refresh()
                 table.add_row(added_text + article.text)
-                collective_mem += mem_after
-    print(f"\nCollective memory usage: {round((collective_mem - mem_before)/(1024 * 1024),3)} MB")
     return table
 
 if __name__ == "__main__":
