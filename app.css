@@ -1,0 +1,38 @@
+/* Light Theme */
+App.light {
+    background: #ffffff;
+    color: #1a1a1a;
+}
+
+/* Dark Theme (default) */
+App.dark {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+#toggle-theme {
+    max-width: 20;
+}
+
+#article-list {
+    width: 40%;
+    height: 100%;
+}
+
+#article-detail {
+    width: 60%;
+    height: 100%;
+}
+
+ListView {
+    height: 100%;
+}
+
+Static#page-indicator {
+    align: center middle;
+    width: 12;
+}
+
+Button {
+    min-width: 8;
+}
