@@ -1,6 +1,7 @@
 news:
   urls:
-    - https://vnexpress.net/
+    - https://thehackernews.com/
+    - https://hackernoon.com/
     - https://theinvestor.vn/
     - https://dantri.com.vn/
     - https://www.tinnhanhchungkhoan.vn/
@@ -8,8 +9,8 @@ news:
     - "#"
     - "comment"
     - "newsbtc.com/news/"
-number_of_news: 5
+number_of_news: 10
 use_images: True
 memoize_articles: False
 theme: dark
-page_size: 5
+page_size: 10

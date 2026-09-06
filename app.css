@@ -4,10 +4,11 @@ ArticleListView {
     height: 100%;
 }
 
-/* Right pane (detail) takes 60% */
+/* Right pane (detail) takes 60%, scrollable */
 ArticleDetailView {
     width: 60%;
     height: 100%;
+    overflow-y: scroll;
 }
 
 /* Article list fills the vertical space above pagination */
@@ -29,7 +30,7 @@ ArticleDetailView {
 
 #detail-content {
     width: 100%;
-    height: 100%;
+    height: auto;
     padding: 1 2;
 }
 
