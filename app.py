@@ -2,9 +2,10 @@ import asyncio
 from typing import Dict, List
 
 from textual.app import App, ComposeResult
+from textual.theme import Theme
 from textual.binding import Binding
-from textual.containers import Container, Horizontal
-from textual.widgets import Button, Footer, Header, ListView, Static, Tab, TabbedContent
+from textual.containers import Container, Horizontal, Vertical
+from textual.widgets import Button, Footer, Header, ListView, Static, TabbedContent, TabPane
 
 from configs import load_config
 from services.fetcher import fetch_source
@@ -68,10 +69,6 @@ class ArticleDetailView(Static):
         content.update(body)
 
 
-class Vertical(Container):
-    pass
-
-
 class NewsApp(App):
     BINDINGS = [
         Binding("t", "toggle_theme", "Toggle Theme"),
@@ -83,18 +80,27 @@ class NewsApp(App):
     def __init__(self, config_path: str = "configs/configs.yaml", **kwargs):
         super().__init__(**kwargs)
         self.config = load_config(config_path)
-        self.current_theme = self.config.get("theme", "dark")
+        self._theme_name: str = self.config.get("theme", "dark")
         self.page_size = self.config.get("page_size", 5)
         self.articles_cache: Dict[str, List[Article]] = {}
 
     def compose(self) -> ComposeResult:
         yield Header()
+        yield TabbedContent(id="source-tabs")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        dark = Theme(name="dark", primary="#6699ff", dark=True)
+        light = Theme(name="light", primary="#0066cc", dark=False)
+        self.register_theme(dark)
+        self.register_theme(light)
+        self.theme = self._theme_name
         urls = self.config.get("news", {}).get("urls", [])
-        tc = TabbedContent(id="source-tabs")
+        tc = self.query_one("#source-tabs", TabbedContent)
         for url in urls:
             host = url.split("://")[1].split("/")[0] if "://" in url else url
-            tc.add_tab(
-                Tab(
+            tc.add_pane(
+                TabPane(
                     host,
                     Horizontal(
                         ArticleListView(page_size=self.page_size),
@@ -102,19 +108,10 @@ class NewsApp(App):
                     ),
                 )
             )
-        yield tc
-        yield Footer()
-
-    def on_mount(self) -> None:
-        self.apply_theme(self.current_theme)
-        self.set_interval(0.5, self._check_tab_change)
-
-    def _check_tab_change(self) -> None:
-        pass
 
     def action_toggle_theme(self) -> None:
-        self.current_theme = "light" if self.current_theme == "dark" else "dark"
-        self.apply_theme(self.current_theme)
+        self._theme_name = "light" if self._theme_name == "dark" else "dark"
+        self.theme = self._theme_name
 
 
 if __name__ == "__main__":
