@@ -1,11 +1,12 @@
 import asyncio
+from datetime import datetime
 from typing import Dict, List, Optional
 
 from textual.app import App, ComposeResult
 from textual.theme import Theme
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import Button, Footer, Header, ListView, Static, TabbedContent, TabPane
+from textual.containers import Container, Horizontal, ScrollableContainer, Vertical
+from textual.widgets import Button, Footer, Header, ListItem, ListView, Static, TabbedContent, TabPane
 
 from configs import load_config
 from services.fetcher import fetch_source
@@ -27,6 +28,29 @@ class ArticleListView(Container):
                 yield Static("Page 1/1", id="page-info")
                 yield Button("Next", id="next-page", disabled=True)
 
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "prev-page":
+            self.prev_page()
+        elif event.button.id == "next-page":
+            self.next_page()
+
+    def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
+        self._show_selected_article()
+
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        self._show_selected_article()
+
+    def _show_selected_article(self) -> None:
+        list_view = self.query_one("#article-list", ListView)
+        if list_view.index is None:
+            return
+        start = self.current_page * self.page_size
+        idx = start + list_view.index
+        if idx < len(self.articles):
+            article = self.articles[idx]
+            detail = self.parent.query_one(ArticleDetailView)
+            detail.show_article(article)
+
     def update_articles(self, articles: List[Article]) -> None:
         self.articles = articles
         self.current_page = 0
@@ -39,7 +63,7 @@ class ArticleListView(Container):
         end = start + self.page_size
         for i, article in enumerate(self.articles[start:end]):
             list_view.append(
-                Static(f"[cyan]{start + i + 1}.[/cyan] [yellow]{article.title}[/yellow]")
+                ListItem(Static(f"[cyan]{start + i + 1}.[/cyan] [yellow]{article.title}[/yellow]"))
             )
         total = max(1, (len(self.articles) + self.page_size - 1) // self.page_size)
         self.query_one("#page-info", Static).update(f"Page {self.current_page + 1}/{total}")
@@ -58,14 +82,14 @@ class ArticleListView(Container):
             self._render_page()
 
 
-class ArticleDetailView(Container):
+class ArticleDetailView(ScrollableContainer):
     def compose(self) -> ComposeResult:
         yield Static("Select an article", id="detail-content")
 
     def show_article(self, article: Article) -> None:
         content = self.query_one("#detail-content", Static)
-        date = article.publish_date.strftime("%Y-%m-%d") if article.publish_date else ""
-        body = f"[bold cyan]{article.title}[/bold cyan]\n[dim]{date}[/dim]\n[blue]{article.url}[/blue]\n\n{article.text[:500]}"
+        date = article.publish_date.strftime("%Y-%m-%d %H:%M") if article.publish_date and article.publish_date != datetime.min else ""
+        body = f"[bold cyan]{article.title}[/bold cyan]\n[dim]{date}[/dim]\n[blue]{article.url}[/blue]\n\n{article.text}"
         content.update(body)
 
 
