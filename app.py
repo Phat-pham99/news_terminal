@@ -12,7 +12,7 @@ from services.fetcher import fetch_source
 from services.models import Article
 
 
-class ArticleListView(Static):
+class ArticleListView(Container):
     def __init__(self, page_size: int = 5, **kwargs):
         super().__init__(**kwargs)
         self.page_size = page_size
@@ -20,9 +20,9 @@ class ArticleListView(Static):
         self.articles: List[Article] = []
 
     def compose(self) -> ComposeResult:
-        with Horizontal():
+        with Vertical():
             yield ListView(id="article-list")
-            with Vertical(id="pagination"):
+            with Horizontal(id="pagination"):
                 yield Button("Prev", id="prev-page", disabled=True)
                 yield Static("Page 1/1", id="page-info")
                 yield Button("Next", id="next-page", disabled=True)
@@ -58,7 +58,7 @@ class ArticleListView(Static):
             self._render_page()
 
 
-class ArticleDetailView(Static):
+class ArticleDetailView(Container):
     def compose(self) -> ComposeResult:
         yield Static("Select an article", id="detail-content")
 

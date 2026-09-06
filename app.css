@@ -1,36 +1,36 @@
-/* Light Theme */
-App.light {
-    background: #ffffff;
-    color: #1a1a1a;
-}
-
-/* Dark Theme (default) */
-App.dark {
-    background: #1a1a1a;
-    color: #e0e0e0;
-}
-
-#toggle-theme {
-    max-width: 20;
-}
-
-#article-list {
+/* Left pane (list + pagination) takes 40% */
+ArticleListView {
     width: 40%;
     height: 100%;
 }
 
-#article-detail {
+/* Right pane (detail) takes 60% */
+ArticleDetailView {
     width: 60%;
     height: 100%;
 }
 
-ListView {
-    height: 100%;
+/* Article list fills the vertical space above pagination */
+#article-list {
+    height: 1fr;
+    width: 100%;
 }
 
-Static#page-indicator {
-    align: center middle;
+/* Pagination bar at bottom of left pane */
+#pagination {
+    height: 3;
+    width: 100%;
+}
+
+#page-info {
     width: 12;
+    align: center middle;
+}
+
+#detail-content {
+    width: 100%;
+    height: 100%;
+    padding: 1 2;
 }
 
 Button {
