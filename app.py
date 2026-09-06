@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from textual.app import App, ComposeResult
 from textual.theme import Theme
@@ -82,7 +82,12 @@ class NewsApp(App):
         self.config = load_config(config_path)
         self._theme_name: str = self.config.get("theme", "dark")
         self.page_size = self.config.get("page_size", 5)
-        self.articles_cache: Dict[str, List[Article]] = {}
+        self.urls: List[str] = self.config.get("news", {}).get("urls", [])
+        self.block_list: List[str] = self.config.get("news", {}).get("block_list", [])
+        self.num_news: int = self.config.get("number_of_news", 5)
+        self.use_images: bool = self.config.get("use_images", False)
+        self.memoize: bool = self.config.get("memoize_articles", True)
+        self._fetched: Dict[str, bool] = {}
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -95,9 +100,8 @@ class NewsApp(App):
         self.register_theme(dark)
         self.register_theme(light)
         self.theme = self._theme_name
-        urls = self.config.get("news", {}).get("urls", [])
         tc = self.query_one("#source-tabs", TabbedContent)
-        for url in urls:
+        for i, url in enumerate(self.urls):
             host = url.split("://")[1].split("/")[0] if "://" in url else url
             tc.add_pane(
                 TabPane(
@@ -106,8 +110,36 @@ class NewsApp(App):
                         ArticleListView(page_size=self.page_size),
                         ArticleDetailView(),
                     ),
+                    name=url,
+                    id=f"pane-{i}",
                 )
             )
+        self._fetch_active_tab()
+
+    def _get_active_pane(self) -> Optional[TabPane]:
+        tc = self.query_one("#source-tabs", TabbedContent)
+        return tc.active_pane
+
+    def _fetch_active_tab(self) -> None:
+        pane = self._get_active_pane()
+        if pane is None:
+            return
+        url = pane.name
+        if url in self._fetched:
+            return
+        self._fetched[url] = True
+        self.run_worker(self._fetch_url(url, pane), exclusive=True)
+
+    async def _fetch_url(self, url: str, pane: TabPane) -> None:
+        loop = asyncio.get_running_loop()
+        articles = await loop.run_in_executor(
+            None, fetch_source, url, self.num_news, self.block_list, self.use_images, self.memoize
+        )
+        list_view = pane.query_one(ArticleListView)
+        list_view.update_articles(articles)
+
+    def on_tabbed_content_tab_activated(self, event: TabbedContent.TabActivated) -> None:
+        self._fetch_active_tab()
 
     def action_toggle_theme(self) -> None:
         self._theme_name = "light" if self._theme_name == "dark" else "dark"

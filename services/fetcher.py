@@ -18,7 +18,7 @@ def fetch_source(
     memoize: bool = True,
 ) -> List[Article]:
     source = Source(url, memoize_articles=memoize)
-    articles = list(source.articles())
+    articles = source.articles if source.articles else []
 
     filtered: List[Article] = []
     for article in articles:
