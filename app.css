@@ -1,0 +1,39 @@
+/* Left pane (list + pagination) takes 40% */
+ArticleListView {
+    width: 40%;
+    height: 100%;
+}
+
+/* Right pane (detail) takes 60%, scrollable */
+ArticleDetailView {
+    width: 60%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+/* Article list fills the vertical space above pagination */
+#article-list {
+    height: 1fr;
+    width: 100%;
+}
+
+/* Pagination bar at bottom of left pane */
+#pagination {
+    height: 3;
+    width: 100%;
+}
+
+#page-info {
+    width: 12;
+    align: center middle;
+}
+
+#detail-content {
+    width: 100%;
+    height: auto;
+    padding: 1 2;
+}
+
+Button {
+    min-width: 8;
+}
