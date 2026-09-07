@@ -11,6 +11,7 @@ from textual.widgets import Button, Footer, Header, ListItem, ListView, Static, 
 from configs import load_config
 from services.fetcher import fetch_source
 from services.models import Article
+from utils.utils import imagebit_to_string, url_to_imagebit
 
 
 class ArticleListView(Container):
@@ -83,14 +84,32 @@ class ArticleListView(Container):
 
 
 class ArticleDetailView(ScrollableContainer):
+    def __init__(self, image_width: int = 70, **kwargs):
+        super().__init__(**kwargs)
+        self.image_width = image_width
+
     def compose(self) -> ComposeResult:
         yield Static("Select an article", id="detail-content")
 
     def show_article(self, article: Article) -> None:
         content = self.query_one("#detail-content", Static)
         date = article.publish_date.strftime("%Y-%m-%d %H:%M") if article.publish_date and article.publish_date != datetime.min else ""
-        body = f"[bold cyan]{article.title}[/bold cyan]\n[dim]{date}[/dim]\n[blue]{article.url}[/blue]\n\n{article.text}"
-        content.update(body)
+        sections = [
+            f"[bold cyan]{article.title}[/bold cyan]",
+            f"[dim]{date}[/dim]" if date else "",
+            f"[blue]{article.url}[/blue]",
+        ]
+
+        if article.top_image:
+            try:
+                image = url_to_imagebit(article.top_image)
+                width = max(1, min(self.image_width, self.size.width - 4))
+                sections.append(imagebit_to_string(image, width))
+            except Exception:
+                pass
+
+        sections.append(article.text)
+        content.update("\n\n".join(section for section in sections if section))
 
 
 class NewsApp(App):

@@ -16,10 +16,13 @@ def yaml_dot(yaml_after_read:str,query:str) -> str:
     return read_data(yaml_after_read,query_list)
 
 def url_to_imagebit(url):
-    image = Image.open(requests.get(url, stream=True).raw)
-    return image
+    with requests.get(url, stream=True, timeout=10) as response:
+        response.raise_for_status()
+        with Image.open(response.raw) as image:
+            return image.convert("RGB")
 
 def imagebit_to_string(img: Image, dest_width: int, unicode: bool = True) -> str:
+    img = img.convert("RGB")
     img_width, img_height = img.size
     scale = img_width / dest_width
     dest_height = int(img_height / scale)
