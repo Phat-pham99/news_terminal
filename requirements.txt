@@ -17,7 +17,7 @@ mdurl==0.1.2
 newspaper3k==0.2.8
 nltk==3.8.1
 psutil==7.0.0
-Pygments==2.18.0
+Pygments==2.21.0
 python-dateutil==2.9.0.post0
 PyYAML==6.0.1
 regex==2024.5.15
