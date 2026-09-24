@@ -4,9 +4,9 @@ A terminal-based news aggregator that fetches and displays articles from multipl
 
 ## Demo
 
-<video controls width="640">
-  <source src="asset/2026-09-24-02.mp4" type="video/mp4">
-</video>
+
+https://github.com/user-attachments/assets/9a052593-6730-45a3-99f9-49ec1b36d08c
+
 
 ## Features
 
