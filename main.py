@@ -1,132 +1,21 @@
-import re
 import argparse
 import os
-import psutil
+from pathlib import Path
 
-from utils.utils import read_yaml,yaml_dot,url_to_imagebit,imagebit_to_string
-import newspaper
-from rich import pretty, box
-from rich.table import Table, Column
-from rich.console import Console
-from rich.progress import Progress, BarColumn, TextColumn
+from app import NewsApp
 
-__author__ = "Phat Hong Pham"
-__copyright__= "Copyright 2024"
-__version__ = "1.0.1"
-__email__="hphat99@gmail.com"
 
-pretty.install()
-console = Console()
+def main():
+    parser = argparse.ArgumentParser(description="NewsTerminal TUI")
+    parser.add_argument("--config", default="configs/configs.yaml")
+    args = parser.parse_args()
 
-table = Table(
-    box=box.DOUBLE,
-    show_lines=True
-)
-table.add_column(
-    header='News',
-    justify="justified", 
-    style="white")
-text_column = TextColumn(
-    "{task.description}",
-    table_column=Column(ratio=1))
-bar_column = BarColumn(
-    bar_width=None,
-    table_column=Column(ratio=2))
-progress = Progress(
-    text_column,
-    bar_column,
-    transient=True,
-    expand=True, 
-    auto_refresh=False)
+    project_root = Path(__file__).parent
+    config_path = project_root / args.config if not os.path.isabs(args.config) else Path(args.config)
 
-configs = read_yaml("configs/configs.yaml")
+    app = NewsApp(config_path=str(config_path))
+    app.run()
 
-description = """
-Simple news aggregator right in your terminal !
-Github: https://github.com/Phat-pham99/news_terminal
-Auhor: Phat Hong Pham
-Email: hphat99@gmail.com
-"""
-def mem_info():
-    process = psutil.Process(os.getpid())
-    mem_info = process.memory_info()
-    return mem_info.rss
-
-def news_terminal(configs,url,input_block_list,numb_news,has_image,is_memoize):
-    url_list = yaml_dot(configs,"news.urls")
-    if url:
-        url_list.append(url)
-    mem_before = mem_info()
-    with progress:
-        task_ = progress.add_task(f"""[red]Getting news...[/red]\n""",
-                        total=len(url_list)*numb_news)
-        for url in url_list:
-            news_paper = newspaper.build(url,
-                        memoize_articles=is_memoize)
-            block_list = yaml_dot(configs,"news.block_list")
-            if input_block_list:
-                block_list.append(input_block_list)
-            for article in news_paper.articles:
-                for block_item in block_list:
-                    if re.search(block_item,article.url) :
-                        try:
-                            news_paper.articles.remove(article)
-                        except ValueError:
-                            pass
-                    else:
-                        continue
-            for article in news_paper.articles[0:numb_news]:
-                try:
-                    article.download()
-                    mem_after = mem_info()
-                    article.parse()
-                except Exception:
-                    mem_after = mem_info()
-                    continue
-                use_images = has_image if has_image \
-                    else yaml_dot(configs,"use_images")
-                if use_images:
-                    try:
-                        image = url_to_imagebit(article.top_image)
-                        mem_after = mem_info()
-                        added_text = f"""{article.publish_date}\n
-                        [green bold]{article.title}\n[/green bold]\n{imagebit_to_string(image,100)}\n
-                        [blue]{article.url}[/blue] \n\n"""
-                        progress.update(task_,description=f"""[blue]{url}[/blue]\n{article.title}\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n{imagebit_to_string(image,70)}""",advance=1)
-                        progress.refresh()
-                    except:
-                        added_text = f"""{article.publish_date}\n[green bold]{article.title}[/green bold]\n\
-                        [blue]{article.url}[/blue]\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n
-                        """
-                        progress.update(task_,description=f"""[blue]{url}[/blue]\n {article.title}""", advance=1)
-                        progress.refresh()
-                else:
-                    added_text = f"""{article.publish_date}\n
-                    [green bold]{article.title}[/green bold]\n
-                    [blue]{article.url}[/blue]\n\n """
-                    progress.update(task_,description=f"""[blue]{url}[/blue]\n {article.title}\n\nmem_usage: {round((mem_after - mem_before)/(1024 * 1024),2)} MB\n
-                                """, advance=1)
-                    progress.refresh()
-                table.add_row(added_text + article.text)
-    return table
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("--url", "-u", help="additional news url")
-    parser.add_argument("--block_list","-b", help="list of keywords to exclude")
-    parser.add_argument("--numb_news","-n", help="number of news per url")
-    parser.add_argument("--image","-im",action='store_true', help="Set this flag to show image")
-    parser.add_argument("--memoize","-me", help="Set to False for unduplicated news")
-    args = parser.parse_args()
-    number_of_news = int(args.numb_news) if args.numb_news \
-        else yaml_dot(configs,"number_of_news")
-    memoize_articles =  args.memoize if args.memoize \
-        else yaml_dot(configs,"memoize_articles")
-    console.print(
-        news_terminal(
-            configs,args.url,
-            args.block_list,
-            number_of_news,
-            args.image,
-            memoize_articles)
-        )
+    main()
