@@ -2,6 +2,12 @@
 
 A terminal-based news aggregator that fetches and displays articles from multiple sources directly in your terminal.
 
+## Demo
+
+<video controls width="640">
+  <source src="asset/2026-09-24-02.mp4" type="video/mp4">
+</video>
+
 ## Features
 
 - **Multiple news sources** — Configure as many RSS/feed URLs as you want in `configs.yaml`
